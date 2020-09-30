@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="info.apicon.plugins.custom" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<name>CordovaCustomPlugin</name><js-module name="CordovaCustomPlugin" src="www/CordovaCustomPlugin.js"><clobbers target="cordova.plugins" />
+</js-module><platform name="android"><config-file parent="/*" target="res/xml/config.xml">
+<feature name="CordovaCustomPlugin">
+<param name="android-package" value="info.apicon.plugins.custom.CordovaCustomPlugin" />
+<param name="onload" value="true" />
+</feature>
+</config-file>
+<config-file parent="/*" target="AndroidManifest.xml" />
+
+<source-file src="src/android/CordovaCustomPlugin.java" target-dir="src/apicon/custom/CordovaCustomPlugin" />
+ 
+</platform>
+ <engines>
+    <engine name="cordova-android" version=">=9.0.0" />
+  </engines>
+<platform name="ios"><config-file parent="/*" target="config.xml">
+<feature name="CordovaCustomPlugin"><param name="ios-package" value="CordovaCustomPlugin" />
+</feature></config-file>
+
+<source-file src="src/ios/CordovaCustomPlugin.m" /></platform>
+</plugin>
+ 

@@ -1,0 +1,19 @@
+{
+  "name": "info.apicon.plugins.custom",
+  "version": "1.0.0",
+  "description": "",
+  "cordova": {
+    "id": "info.apicon.plugins.custom",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "author": "",
+  "license": "ISC"
+}
