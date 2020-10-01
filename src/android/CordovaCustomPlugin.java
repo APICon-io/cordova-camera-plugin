@@ -1,8 +1,13 @@
 package info.apicon.plugins.custom;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.Camera;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
@@ -30,11 +35,13 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 import static android.app.Activity.RESULT_OK;
+import static android.content.Context.SENSOR_SERVICE;
+import static android.support.v4.content.ContextCompat.getSystemService;
 
 /**
  * This class echoes a string called from JavaScript.
  */
-public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder.Callback{
+public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder.Callback, SensorEventListener {
 
     private Camera mCamera;
     private SurfaceView surfaceView;
@@ -43,6 +50,10 @@ public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder
     FrameLayout layout;
     LinearLayout innerLayout;
     CallbackContext c;
+    private SensorManager sensorManager;
+    private Sensor light;
+    float lux;
+
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -60,6 +71,12 @@ public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder
         capture_image.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0,0.9f));
         capture_image.setText("CAPTURE");
         capture_image.setGravity(Gravity.CENTER);
+
+
+
+        //Sensor
+        sensorManager = (SensorManager) cordova.getActivity().getSystemService(SENSOR_SERVICE);
+        light = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
 
 
@@ -99,7 +116,7 @@ public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder
                         mCamera.release();
                         mCamera = null;
                     }
-                    coolMethod("noth", c);
+                    coolMethod("captured", c);
 
                     ((ViewGroup) innerLayout.getParent()).removeView(innerLayout);
 
@@ -116,7 +133,13 @@ public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder
 
         if (action.equals("Camera")) {
             // String message = args.getString(0);
-            int direction=args.getInt(0);
+            int direction = args.getInt(0);
+            if (direction == 2) {
+                coolMethod(lux + "", callbackContext);
+            }
+
+            else {
+
 
             cordova.getActivity().runOnUiThread(new Runnable() {
                 public void run() {
@@ -129,19 +152,20 @@ public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    if(surfaceView.getParent() != null) {
-                        ((ViewGroup)surfaceView.getParent()).removeView(surfaceView);
-                        ((ViewGroup)capture_image.getParent()).removeView(capture_image);// <- fix
+                    if (surfaceView.getParent() != null) {
+                        ((ViewGroup) surfaceView.getParent()).removeView(surfaceView);
+                        ((ViewGroup) capture_image.getParent()).removeView(capture_image);// <- fix
                     }
-                    innerLayout.addView(surfaceView,0);
-                    innerLayout.addView(capture_image,1);
+                    innerLayout.addView(surfaceView, 0);
+                    innerLayout.addView(capture_image, 1);
                     layout.addView(innerLayout);
 
-                    c=callbackContext;
+                    c = callbackContext;
 
-                  //  callbackContext.success(); // Thread-safe.
+                    //  callbackContext.success(); // Thread-safe.
                 }
             });
+        }
 
             return true;
         }
@@ -152,7 +176,7 @@ public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder
     //    Toast.makeText(cordova.getActivity(), "Sent", Toast.LENGTH_SHORT).show();
         if (message != null && message.length() > 0) {
           //  Toast.makeText(cordova.getActivity(), "Sent2", Toast.LENGTH_SHORT).show();
-            callbackContext.success("captured");
+            callbackContext.success(message);
         } else {
             callbackContext.error("Expected one non-empty string argument.");
         }
@@ -182,5 +206,29 @@ public class CordovaCustomPlugin extends CordovaPlugin  implements SurfaceHolder
             mCamera.release();
             mCamera = null;
         }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float millibarsOfLight= event.values[0];
+        lux=millibarsOfLight;
+        
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    @Override
+    public void onResume(boolean multitasking) {
+        super.onResume(multitasking);
+        sensorManager.registerListener(this, light, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    public void onPause(boolean multitasking) {
+        super.onPause(multitasking);
+        sensorManager.unregisterListener(this);
     }
 }
